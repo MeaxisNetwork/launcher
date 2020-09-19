@@ -13,3 +13,6 @@ Yes, some of the code was scripted around 2 months ago... and was scheduled to r
 ## Why did you use a home-made setup and not something like SquirrelSetup?
 1) Not available on Linux
 2) Didn't know it even existed
+
+## Can I add apps to the MeaxisNetwork Launcher?
+Yes you can! Visit our developers page at https://meaxisnetwork.net/launcher to learn more.

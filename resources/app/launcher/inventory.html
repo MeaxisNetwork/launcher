@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- 
+		Hi curious MeaxisNetwork User!!!
+		
+		Thank you for being interested in what we do.
+		If you're a developer, we might have some things that you may use!
+
+		Check https://meaxisnetwork.net/developers/ for more info, I'm sure you'll like it!
+
+		Anyways, about this launcher:
+		Made by MeaxisNetwork, (C) Copyright MeaxisNetwork 2020.
+
+		"We keep moving forward—opening up new doors and doing new things—because we're curious. And curiosity keeps leading us down new paths."
+		~ Walter Elias Disney
+
+		^ The quote above can also be found when you inspect-element Disney+.
+	-->	
+
+	<!-- Page Info -->
+	<title>MeaxisNetwork Launcher</title>
+	<meta charset="utf-8">
+
+	<!-- Load Halfmoon -->
+	<link rel="stylesheet" type="text/css" href="../deps/lib/halfmoon/halfmoon.css">
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+
+	<!-- JQuery Compatibility -->
+	<script type="text/javascript">
+		if (typeof module === "object") {
+			window.module = module;
+			module = undefined;
+		}
+	</script>
+
+	<!-- Load jQuery -->
+	<script type="text/javascript" src="../deps/lib/jquery.js"></script>
+
+	<!-- Load FontAwesome -->
+	<link rel="stylesheet" type="text/css" href="../deps/lib/fontawesome/css/all.css">
+
+	<!-- DarkMode & Define Electron (Aury) -->
+	<script>
+		var setCookie, installItem, launchItem, currentItem;
+		var accountInformation = {
+			username: "[Deleted User]",
+			email: "deleted@meaxisnetwork.net",
+			avatarurl: "https://meaxisnetwork.net/assets/images/banned.png",
+			logcook: "NONE",
+			sesscook: "NONE"
+		}
+
+		const { shell } = require('electron');
+		const request = require('request');
+		const axios = require('axios');
+		const extract = require('extract-zip');
+
+		$(function() {
+			const { ipcRenderer } = require('electron'); // Recuperating Aury in case we need him later.
+			const fs = require('fs');
+
+			var session = require('electron').remote.session; // Recuperating Aury's "memories".
+			var ses = session.fromPartition('persist:name'); // Look this is from StackOverflow I just know it lets me access cookies but nothing more ok?!
+
+			halfmoon.toggleDarkMode();
+
+			var sidebar = fs.readFileSync(process.cwd()+'/resources/app/deps/sidebar.html');
+			document.querySelector('.sidebar').innerHTML = sidebar;
+
+			setCookie = function(data, name, remove) {
+				var expiration = new Date();
+
+				if (remove == null || remove == undefined || remove != true)
+				{
+					expiration = expiration.getTime()+3600*24*365;
+				}
+
+				else
+				{
+					expiration = expiration.getTime()-5000;
+				}
+
+				ses.cookies.set({
+					url: "https://meaxisnetwork.net/",
+					name: name, // a name to identify it.
+					value: data, // the value that you want to save
+					expirationDate: expiration
+				}, function(error) {
+					console.log(error);
+				});
+
+			}
+
+			var accountReady = ses.cookies.get({name: 'logcook'})
+			.then(function(data) {
+
+				if (data[0] == null || data[0] == undefined)
+				{
+					window.location.href = "login.html";
+				}
+
+				var logcook = data[0]
+
+				ses.cookies.get({ name:'sesscook' })
+				.then((sesscook) => {
+					var sesscook = sesscook[0];
+
+					if (sesscook == undefined || sesscook['value'] == undefined)
+					{
+						sesscook = {
+							value: "none"
+						}
+					}
+
+					$.ajax({
+						url: 'https://api.meaxisnetwork.net/v2/accounts/control/information/',
+						type: 'POST',
+						data: { logcook: logcook['value'], sesscook: sesscook['value'] },
+						async: false,
+						success: function(data) {
+							accountInformation = JSON.parse(data)['message'];
+							accountInformation['logcook'] = logcook['value'];
+							accountInformation['sesscook'] = sesscook['value'];
+							
+							if (sesscook != undefined && sesscook != null)
+							{
+								accountInformation['sesscook'] = sesscook['value'];
+							}
+
+							else
+							{
+								accountInformation['sesscook'] = "none";
+							}
+
+							document.getElementById('navbar-username').innerHTML = accountInformation['username'];
+
+							let params = (new URL(document.location)).searchParams;
+							let item = params.get("item"); 
+
+							if (item == undefined || item == null)
+							{
+								$.ajax({
+									url: 'https://api.meaxisnetwork.net/v2/accounts/control/inventory/',
+									type: 'POST',
+									data: { logcook: accountInformation['logcook'], sesscook: accountInformation['sesscook'], inventoryType: "application" },
+									async: false,
+									success: function(data) {
+										var parsedData = JSON.parse(data);
+
+										if (parsedData['code'] == 200)
+										{
+											var parsedDataMessage = parsedData['message'].replace("\\", "");
+											var parsedFinalData = JSON.parse(parsedDataMessage);
+
+											parsedFinalData.forEach(function(cardData) {
+												prefcol.innerHTML = prefcol.innerHTML + '<div class="card p-0"><img src="'+cardData['thumbnail']+'" class="img-fluid rounded-top" alt="..."><div class="content"><h2 class="content-title mb-0">'+cardData['name']+'</h2><p class="text-muted mt-0">'+cardData['description']+'</p><div class=""><a href="?item='+cardData['id']+'" class="btn">Read more</a></div></div></div>'
+											});
+										}
+									}
+								})
+							}
+
+							else
+							{
+								$.ajax({
+									url: 'https://api.meaxisnetwork.net/v2/shop/queryInformation/?item='+item,
+									type: 'POST',
+									data: { logcook: accountInformation['logcook'], sesscook: accountInformation['sesscook'] },
+									async: false,
+									success: function(data) {
+										var parsedData = JSON.parse(data);
+
+										if (parsedData['code'] == 200)
+										{
+											var cardData = parsedData['message'];
+											currentItem = cardData;
+
+											prefcol.innerHTML = prefcol.innerHTML + '<img src="'+cardData['thumbnail']+'" class="img-fluid rounded-top" alt="..." style="position: relative; opacity: 0.2;"><div class="content" style="position:absolute; top: 0px;"><h2 class="content-title mb-0">'+cardData['name']+'</h2><p class="text-muted mt-0">'+cardData['description']+'</p><div id="appsettings"></div></div>';
+
+											var appsettings = document.getElementById('appsettings');
+											var appsetinnerhtml = "";
+
+											var isInstalledOnDevice = false;
+
+											// Check if installed on device
+											var contents = fs.readFileSync(process.cwd()+"/installations.json");
+
+											if (contents != null && contents != undefined)
+											{
+												var jsonContents = JSON.parse(contents);
+
+												if (jsonContents[cardData['id']] != null && jsonContents[cardData['id']] != undefined)
+												{
+													var appStatus = jsonContents[cardData['id']];
+
+													if (appStatus['installed'] == true)
+													{
+														isInstalledOnDevice = true;
+													}
+												}
+											}
+
+											if (cardData['ownsItem'] == false)
+											{
+												appsetinnerhtml = '<a href="https://meaxisnetwork.net/shop/'+cardData['id']+'" class="btn">Buy on the MeaxisNetwork Shop</a>';
+											}
+
+											else if (cardData['ownsItem'] == true)
+											{
+												if (isInstalledOnDevice == true)
+												{
+													appsetinnerhtml = '<a class="btn" onclick="launchItem();">Launch</a>';
+												}
+
+												else
+												{
+													appsetinnerhtml = '<a class="btn" onclick="installItem();">Install</a>';
+												}
+											}
+
+											appsettings.innerHTML = appsetinnerhtml
+										}
+									}
+								})
+							}
+						}
+					})
+
+
+
+						
+				}).catch((error) => {
+					console.log(error);
+					alert("MeaxisNetwork ran across the following error while fetching your account data:\n"+error+".\nPlease try to log back in. If this error persists, contact technical support.")
+					window.location.href = "login.html";
+				})
+			})
+
+			// Install Item function
+			installItem = function() {
+				appsettings.innerHTML = '<progress id="installProgressBar" max="100" value="0" data-before="Installing (0%)">hey, it\'s a gataou!</progress>';
+
+				var progressBar = document.getElementById('installProgressBar');
+
+				setTimeout(function() {
+					if (progressBar == null || progressBar == undefined)
+					{
+						alert('Error.');
+						return;
+					}
+
+					// Save variable to know progress
+					var received_bytes = 0;
+					var total_bytes = 0;
+
+					progressBar.dataset.before = "Authorizing...";
+					progressBar.value = 33;
+
+					$.ajax('https://cdn.meaxisnetwork.net/launcher/cangetapp.php', {
+						type: 'POST',
+						data: {
+							logcook: accountInformation['logcook'],
+							sesscook: accountInformation['sesscook'],
+							platform: "win",
+							appId: currentItem['id']
+						},
+
+						success: function ( data, body ) {
+							// Change the total bytes value to get progress later.
+							console.log(data);
+
+							progressBar.dataset.before = "Connecting...";
+							progressBar.value = 66;
+
+							progressBar.dataset.before = "Preparing...";
+							progressBar.value = 95;
+
+							var filename = process.cwd()+'/installs/binaries-'+currentItem['appId']+'.zip';
+							const writer = fs.createWriteStream(filename)
+
+							axios.defaults.adapter = require('axios/lib/adapters/http');
+
+							var getParameters = "?logcook="+accountInformation['logcook'];
+							getParameters = getParameters+"&sesscook="+accountInformation['sesscook'];
+							getParameters = getParameters+"&appId="+currentItem['id']+"&platform=win";
+
+							axios({
+								url: "https://cdn.meaxisnetwork.net/launcher/getapp.php"+getParameters,
+								method: 'GET',
+								responseType: 'stream'
+							}).then(function(response) {
+								
+								console.log(response);
+								var fullFileSize = response.headers['content-length'];
+								var currentlyDownloaded = 0;
+								
+
+								response.data.on('data', function(chunk) {
+									currentlyDownloaded += chunk.length;
+									var percentage = (currentlyDownloaded / fullFileSize) * 100;
+									console.log(percentage);
+									progressBar.value = percentage;
+
+									progressBar.dataset.before = "Installing... ("+percentage+"%)";
+								});
+
+								response.data.pipe(writer);
+
+								writer.on('finish', function() {
+									progressBar.dataset.before = "Extracting...";
+									extract(filename, { dir:  process.cwd()+'/installs/'+currentItem['id']+'/' })
+									.then(function() {
+										progressBar.dataset.before = "Registering...";
+
+										var installations = fs.readFileSync(process.cwd()+"/installations.json");
+										installations = JSON.parse(installations);
+
+										installations[currentItem['id']] = {
+											installed: true,
+											path: process.cwd()+'/installs/'+currentItem['id']+'/',
+											installedAt: Math.floor(Date.now()/1000)
+										}
+
+										fs.writeFileSync(process.cwd()+"/installations.json", JSON.stringify(installations));
+
+										progressBar.dataset.before = "Done!";
+
+										appsettings.innerHTML = appsettings.innerHTML+"<br><br><br>"+'<a class="btn" onclick="launchItem();">Launch</a>';
+									})
+								})
+							})
+						}
+					});
+				}, 1000);
+			}
+
+			launchItem = function() {
+				appsettings.innerHTML = '<progress id="installProgressBar" max="100" value="0" data-before="Loading">hey, it\'s a gataou!</progress>';
+
+				var progressBar = document.getElementById('installProgressBar');
+
+				setTimeout(function() {
+					if (progressBar == null || progressBar == undefined)
+					{
+						alert('Error.');
+						return;
+					}
+
+					progressBar.value = 0;
+					progressBar.dataset.before = "Fetching application data...";
+
+					$.ajax('https://cdn.meaxisnetwork.net/launcher/cangetapp.php', {
+						type: 'POST',
+						data: {
+							logcook: accountInformation['logcook'],
+							sesscook: accountInformation['sesscook'],
+							platform: "win",
+							appId: currentItem['id']
+						},
+
+						success: function ( returned ) {
+
+							returned = JSON.parse(returned);
+							if (returned['code'] == 200)
+							{
+								progressBar.value = 35;
+								progressBar.dataset.before = "Fetching Data";
+
+								var child = require('child_process').execFile;
+
+								var installations = fs.readFileSync(process.cwd()+"/installations.json");
+								installations = JSON.parse(installations);
+
+								var executablePath = installations[currentItem['id']]['path']+fs.readFileSync(installations[currentItem['id']]['path']+"mainexe.data");
+
+								progressBar.value = 75;
+								progressBar.dataset.before = "Running!";
+
+								child(executablePath, function(err, data) {
+									if(err){
+										progressBar.value = 20;
+										progressBar.dataset.before = "Error ("+err+")";
+										progressBar.className = "error"
+										return;
+									}
+
+									progressBar.value = 100;
+									progressBar.dataset.before = "Launched!";
+								});
+							}
+
+							else
+							{
+								progressBar.value = 20;
+								progressBar.dataset.before = "Access denied ("+returned['code']+")";
+								progressBar.className = "error"
+							}
+						}
+					});
+				});
+			}
+
+			// Preferences
+			var prefcol = document.getElementById('itemcol');
+		});
+	</script>
+
+	<!-- Dark/Light Mode! -->
+	<script type="text/javascript">
+		function toggleLightDarkMode(element) {
+			halfmoon.toggleDarkMode();
+
+			if (element.innerHTML == '<i class="fas fa-sun"></i> Light Mode')
+			{
+				element.innerHTML = '<i class="fas fa-moon"></i> Dark Mode'
+			}
+
+			else
+			{
+				element.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+			}
+		}
+	</script>
+
+	<!-- Handling Giftcards -->
+	<script type="text/javascript" src="../deps/scripts/giftcards.js"></script>
+
+	<!-- Confetti Handling -->
+	<style type="text/css">
+		#confetti-canvas
+		{
+			display: none;
+		}
+
+		progress
+		{
+			-webkit-appearance: none;
+  			appearance: none;
+
+  			margin-left: 20px;
+			width: 80vh;
+		}
+
+		progress::-webkit-progress-bar
+		{
+			background-color: rgba(255, 255, 255, 0.5);
+			border: none;
+			border-radius: 25px;
+			display: block;
+		}
+
+		progress::-webkit-progress-value 
+		{
+			border-radius: 25px;
+		}
+
+		.error::-webkit-progress-value 
+		{
+			background-color: rgba(255, 79, 79, 1);	
+			border-top-right-radius: 0px;
+			border-bottom-right-radius: 0px;
+		}
+
+		progress::before
+		{
+			content: attr(data-before);
+		}
+	</style>
+
+</head>
+<body>
+	<!-- Page wrapper with .with-sidebar class -->
+	<div class="page-wrapper with-sidebar with-navbar">
+		<div class="sticky-alerts"></div>
+
+		<nav class="navbar">
+			<!-- Navbar brand -->
+			<a href="#" class="navbar-brand">
+				MeaxisNetwork Launcher
+			</a>
+			<!-- Navbar text -->
+			<span class="navbar-text ml-8"> <!-- ml-5 = margin-left: 0.5rem (5px) -->
+				<span class="badge text-monospace">BETA 0.8</span> <!-- text-monospace = font-family shifted to monospace -->
+			</span>
+			<!-- Navbar nav -->
+			<ul class="navbar-nav ml-auto"> <!-- ml-auto = margin-left: auto -->
+				<li class="nav-item">
+					<a href="#" class="nav-link"><i class="fas fa-bell"></i></a>
+				</li>
+				<li class="nav-item dropdown with-arrow">
+					<a class="nav-link" data-toggle="dropdown" id="nav-link-dropdown-toggle">
+						<span id="navbar-username"></span> 
+						<i class="fa fa-angle-down ml-5" aria-hidden="true"></i> <!-- ml-5= margin-left: 0.5rem (5px) -->
+					</a>
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="nav-link-dropdown-toggle">
+						<a href="#" class="dropdown-item"><i class="fas fa-user-circle"></i> Account</a>
+						<a href="#" class="dropdown-item" onclick="toggleLightDarkMode(this);"><i class="fas fa-sun"></i> Light Mode</a>
+						<a href="#" class="dropdown-item">(:think:)</a>
+						<div class="dropdown-divider"></div>
+						<div class="dropdown-content">
+							<a href="login.html" onclick="setCookie('logcook', 'null', true); setCookie('sesscook', 'null', true); window.location.href = 'login.html';" class="btn btn-block" role="button">
+								<i class="fa fa-angle-right ml-5" aria-hidden="true"></i> <!-- ml-5= margin-left: 0.5rem (5px) -->Log-out
+							</a>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</nav>
+
+		<!-- Sidebar (immediate child of the page wrapper) -->
+		<div class="sidebar">
+			
+		</div>
+
+		<!-- Content wrapper -->
+		<div class="content-wrapper">
+			<canvas id="confetti-canvas" style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 99;"></canvas>
+			<div class="container-fluid">
+				<div class="row" id="itemcol">
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+</body>
+</html>

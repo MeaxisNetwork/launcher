@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>MeaxisNetwork Launcher</title>
+	<meta charset="utf-8">
+
+	<link rel="stylesheet" type="text/css" href="../deps/lib/halfmoon/halfmoon.css">
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+
+	<!-- JQuery Compatibility -->
+	<script type="text/javascript">
+		if (typeof module === "object") {
+			window.module = module;
+			module = undefined;
+		}
+	</script>
+
+	<!-- Load jQuery -->
+	<script type="text/javascript" src="../deps/lib/jquery.js"></script>
+
+	<!-- DarkMode & Define Electron (Aury) -->
+	<script>
+		$(function() {
+			const {ipcRenderer} = require('electron') // Recuperating Aury in case we need him later.
+			halfmoon.toggleDarkMode();
+
+			const session = require('electron').remote.session;
+			const ses = session.fromPartition('persist:name');
+
+			// Query all cookies associated with a specific url.
+			ses.cookies.get({name: 'logcook'})
+			.then(function(data) {
+				console.log(data[0]);
+
+				if (data[0] == null || data[0] == undefined)
+				{
+					window.location.href = "login.html";
+				}
+
+				else
+				{
+					window.location.href = "index.html"
+				}
+			})
+		});
+	</script>
+</head>
+<body>
+	<!-- Page wrapper with .with-sidebar class -->
+	<div class="page-wrapper text-center">
+		<!-- Content wrapper -->
+		<div class="content-wrapper" style="flex-direction: column; justify-content: center; display: flex;">
+			<h1 class="mb-0">MeaxisNetwork Launcher</h1>
+			<h4 class="mt-0">I'm loading, a few seconds!</h4>
+			<hr>
+			<img src="https://meaxisnetwork.net/assets/images/load.gif" style="width: 10vh; height: 10vh; display: block; margin-left: auto; margin-right: auto;">
+		</div>
+	</div>
+</body>
+</html>

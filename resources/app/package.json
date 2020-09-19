@@ -1,0 +1,32 @@
+{
+  "name": "net.meaxisnetwork.launcher",
+  "version": "0.0.1",
+  "description": "The MeaxisNetwork Launcher: the MeaxisNetwork Desktop App.",
+  "main": "main.js",
+  "scripts": {
+    "build": "electron-packager .",
+    "start": "electron ."
+  },
+  "author": "MeaxisNetwork",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^8.2.4",
+    "electron-packager": "^15.0.0"
+  },
+  "dependencies": {
+    "axios": "^0.20.0",
+    "custom-electron-titlebar": "^3.2.3",
+    "electron-builder": "^22.7.0",
+    "extract-zip": "^2.0.1",
+    "request": "^2.88.2",
+    "rimraf": "^3.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MeaxisNetwork/launcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MeaxisNetwork/launcher/issues"
+  },
+  "homepage": "https://github.com/MeaxisNetwork/launcher"
+}

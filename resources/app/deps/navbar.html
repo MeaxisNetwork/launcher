@@ -1,0 +1,31 @@
+<!-- Navbar brand -->
+<a href="#" class="navbar-brand">
+	MeaxisNetwork Launcher
+</a>
+<!-- Navbar text -->
+<span class="navbar-text ml-8"> <!-- ml-5 = margin-left: 0.5rem (5px) -->
+	<span class="badge text-monospace">BETA</span> <!-- text-monospace = font-family shifted to monospace -->
+</span>
+<!-- Navbar nav -->
+<ul class="navbar-nav ml-auto"> <!-- ml-auto = margin-left: auto -->
+	<li class="nav-item">
+		<a href="#" class="nav-link"><i class="fas fa-bell"></i></a>
+	</li>
+	<li class="nav-item dropdown with-arrow">
+		<a class="nav-link" data-toggle="dropdown" id="nav-link-dropdown-toggle">
+			<span id="navbar-username"></span> 
+			<i class="fa fa-angle-down ml-5" aria-hidden="true"></i> <!-- ml-5= margin-left: 0.5rem (5px) -->
+		</a>
+		<div class="dropdown-menu dropdown-menu-right" aria-labelledby="nav-link-dropdown-toggle">
+			<a href="#" class="dropdown-item"><i class="fas fa-user-circle"></i> Account</a>
+			<a href="#" class="dropdown-item" onclick="toggleLightDarkMode(this);"><i class="fas fa-sun"></i> Light Mode</a>
+			<a href="#" class="dropdown-item">(:think:)</a>
+			<div class="dropdown-divider"></div>
+			<div class="dropdown-content">
+				<a href="login.html" onclick="setCookie('logcook', 'null', true); setCookie('sesscook', 'null', true); window.location.href = 'login.html';" class="btn btn-block" role="button">
+					<i class="fa fa-angle-right ml-5" aria-hidden="true"></i> <!-- ml-5= margin-left: 0.5rem (5px) -->Log-out
+				</a>
+			</div>
+		</div>
+	</li>
+</ul>

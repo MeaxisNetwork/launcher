@@ -1,0 +1,89 @@
+body
+{
+	background-color: #262626;
+	padding: 0px;
+	margin: 0px;
+}
+
+@font-face {
+    font-family: 'Light';
+    src: url('https://meaxisnetwork.net/assets/fonts/gotham_thin.otf');
+}
+
+@font-face {
+    font-family: 'Regular';
+    src: url('https://meaxisnetwork.net/assets/fonts/gotham_normal.otf');
+}
+
+h1
+{
+	color: white;
+	font-family: Regular;
+	text-align: center;
+	margin-bottom: 0px;
+}
+
+p
+{
+	color: white;
+	font-family: Regular;
+	text-align: center;
+	margin-top: 0px;
+	overflow: hidden;
+	margin-bottom: 0px;
+}
+
+img
+{
+	max-width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+	margin-bottom: 0px;
+	animation-duration: 2s;
+  	animation-name: img-anim;
+  	animation-iteration-count:infinite;
+  	
+}
+
+.is-updating .image-bar
+{
+	max-width: 100%;
+	background-color: #3D3D3D;
+}
+
+.is-updating .image-bar img
+{
+	max-width: 30%;
+}
+
+progress
+{
+	display: block;
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+@keyframes img-anim {
+	0%
+	{
+		opacity: 1;
+	}
+
+	50%
+	{
+		opacity: 0.8;
+	}
+
+	100%
+	{
+		opacity: 1;
+	}
+}
+
+hr
+{
+	width: 50%;
+	border-color: #4D4D4D;
+}

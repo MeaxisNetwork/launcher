@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- 
+		Hi curious MeaxisNetwork User!!!
+		
+		Thank you for being interested in what we do.
+		If you're a developer, we might have some things that you may use!
+
+		Check https://meaxisnetwork.net/developers/ for more info, I'm sure you'll like it!
+
+		Anyways, about this launcher:
+		Made by MeaxisNetwork, (C) Copyright MeaxisNetwork 2020.
+
+		"We keep moving forward—opening up new doors and doing new things—because we're curious. And curiosity keeps leading us down new paths."
+		~ Walter Elias Disney
+
+		^ The quote above can also be found when you inspect-element Disney+.
+	-->	
+
+	<!-- Page Info -->
+	<title>MeaxisNetwork Launcher</title>
+	<meta charset="utf-8">
+
+	<!-- Load Halfmoon -->
+	<link rel="stylesheet" type="text/css" href="../deps/lib/halfmoon/halfmoon.css">
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+
+	<!-- JQuery Compatibility -->
+	<script type="text/javascript">
+		if (typeof module === "object") {
+			window.module = module;
+			module = undefined;
+		}
+	</script>
+
+	<!-- Load jQuery -->
+	<script type="text/javascript" src="../deps/lib/jquery.js"></script>
+
+	<!-- Load FontAwesome -->
+	<link rel="stylesheet" type="text/css" href="../deps/lib/fontawesome/css/all.css">
+
+	<!-- DarkMode & Define Electron (Aury) -->
+	<script>
+		var setCookie;
+		var accountInformation = {
+			username: "[Deleted User]",
+			email: "deleted@meaxisnetwork.net",
+			avatarurl: "https://meaxisnetwork.net/assets/images/banned.png",
+			logcook: "NONE",
+			sesscook: "NONE"
+		}
+		
+		const { shell } = require('electron');
+
+		$(function() {
+			const { ipcRenderer } = require('electron'); // Recuperating Aury in case we need him later.
+			const fs = require('fs');
+
+			var session = require('electron').remote.session; // Recuperating Aury's "memories".
+			var ses = session.fromPartition('persist:name'); // Look this is from StackOverflow I just know it lets me access cookies but nothing more ok?!
+
+			halfmoon.toggleDarkMode();
+
+			var navbar = fs.readFileSync(process.cwd()+'/resources/app/deps/navbar.html');
+			document.querySelector('.navbar').innerHTML = navbar;
+
+			var sidebar = fs.readFileSync(process.cwd()+'/resources/app/deps/sidebar.html');
+			document.querySelector('.sidebar').innerHTML = sidebar;
+
+			setCookie = function(data, name, remove) {
+				var expiration = new Date();
+
+				if (remove == null || remove == undefined || remove != true)
+				{
+					expiration = expiration.getTime()+3600*24*365;
+				}
+
+				else
+				{
+					expiration = expiration.getTime()-5000;
+				}
+
+				ses.cookies.set({
+					url: "https://meaxisnetwork.net/",
+					name: name, // a name to identify it.
+					value: data, // the value that you want to save
+					expirationDate: expiration
+				}, function(error) {
+					console.log(error);
+				});
+
+			}
+
+			ses.cookies.get({name: 'logcook'})
+			.then(function(data) {
+
+				if (data[0] == null || data[0] == undefined)
+				{
+					window.location.href = "login.html";
+				}
+
+				var logcook = data[0]
+
+				ses.cookies.get({ name:'sesscook' })
+				.then((sesscook) => {
+					var sesscook = sesscook[0];
+
+					if (sesscook == undefined || sesscook['value'] == undefined)
+					{
+						sesscook = {
+							value: "none"
+						}
+					}
+
+					$.ajax({
+						url: 'https://api.meaxisnetwork.net/v2/accounts/control/information/',
+						type: 'POST',
+						data: { logcook: logcook['value'], sesscook: sesscook['value'] },
+						async: false,
+						success: function(data) {
+							accountInformation = JSON.parse(data)['message'];
+							accountInformation['logcook'] = logcook['value'];
+
+							if (accountInformation['username'] == undefined)
+							{
+								window.location.href = "login.html";
+							}
+							
+							if (sesscook != undefined && sesscook != null)
+							{
+								accountInformation['sesscook'] = sesscook['value'];
+							}
+
+							else
+							{
+								accountInformation['sesscook'] = "none";
+							}
+
+							document.getElementById('navbar-username').innerHTML = accountInformation['username'];
+						}
+					})
+
+						
+				}).catch((error) => {
+					console.log(error);
+					alert("MeaxisNetwork ran across the following error while fetching your account data:\n"+error+".\nPlease try to log back in. If this error persists, contact technical support.")
+					window.location.href = "login.html";
+				})
+			})
+
+
+			// Preferences
+			var prefcol = document.getElementById('prefcol')
+
+			$.ajax({
+				url: 'https://api.meaxisnetwork.net/v2/launcher/lastRan/',
+				type: 'POST',
+				data: { logcook: accountInformation['logcook'] },
+				async: false,
+				success: function(data) {
+					var parsedData = JSON.parse(data);
+
+					parsedData.forEach(function(cardData) {
+						prefcol.innerHTML = prefcol.innerHTML + '<div class="card p-0"><img src="'+cardData['img']+'" class="img-fluid rounded-top" alt="..."><div class="content"><h2 class="content-title mb-0">'+cardData['name']+'</h2><p class="text-muted mt-0">'+cardData['desc']+'</p><div class=""><a href="'+cardData['link']+'" class="btn">Read more</a></div></div></div>'
+					})
+				}
+			})
+		});
+	</script>
+
+	<!-- Dark/Light Mode! -->
+	<script type="text/javascript">
+		function toggleLightDarkMode(element) {
+			halfmoon.toggleDarkMode();
+
+			if (element.innerHTML == '<i class="fas fa-sun"></i> Light Mode')
+			{
+				element.innerHTML = '<i class="fas fa-moon"></i> Dark Mode'
+			}
+
+			else
+			{
+				element.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+			}
+		}
+	</script>
+
+	<!-- Handling Giftcards -->
+	<script type="text/javascript" src="../deps/scripts/giftcards.js"></script>
+
+	<!-- Confetti Handling -->
+	<style type="text/css">
+		#confetti-canvas
+		{
+			display: none;
+		}
+	</style>
+
+</head>
+<body>
+	<!-- Page wrapper with .with-sidebar class -->
+	<div class="page-wrapper with-sidebar with-navbar">
+		<div class="sticky-alerts"></div>
+
+		<nav class="navbar">
+			
+		</nav>
+
+		<!-- Sidebar (immediate child of the page wrapper) -->
+		<div class="sidebar">
+			
+		</div>
+
+		<!-- Content wrapper -->
+		<div class="content-wrapper">
+			<canvas id="confetti-canvas" style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 99;"></canvas>
+			<div class="container-fluid">
+				<div class="row p-20">
+					<div class="col-4" id="prefcol">
+						
+					</div>
+					<div class="col-8">Second column</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+</body>
+</html>

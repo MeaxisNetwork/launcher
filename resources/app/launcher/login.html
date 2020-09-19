@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>MeaxisNetwork Launcher</title>
+	<meta charset="utf-8">
+
+	<link rel="stylesheet" type="text/css" href="../deps/lib/halfmoon/halfmoon.css">
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+
+	<!-- JQuery Compatibility -->
+	<script type="text/javascript">
+		if (typeof module === "object") {
+			window.module = module;
+			module = undefined;
+		}
+	</script>
+
+	<!-- Load jQuery -->
+	<script type="text/javascript" src="../deps/lib/jquery.js"></script>
+
+	<!-- DarkMode & Define Electron (Aury) -->
+	<script>
+		var setCookie;
+
+		$(function() {
+			const {ipcRenderer} = require('electron') // Recuperating Aury in case we need him later.
+			halfmoon.toggleDarkMode();
+
+			var session = require('electron').remote.session; // Recuperating Aury's "memories".
+			var ses = session.fromPartition('persist:name'); // Look this is from StackOverflow I just know it lets me access cookies but nothing more ok?!
+
+			setCookie = function(data, name, remove) {
+				var expiration = new Date();
+
+				if (remove == null || remove == undefined || remove != true)
+				{
+					expiration = expiration.getTime()+3600*24*365
+				}
+
+				else
+				{
+					expiration = expiration.getTime()-5000
+				}
+
+				ses.cookies.set({
+					url: "https://meaxisnetwork.net/",
+					name: name, // a name to identify it.
+					value: data, // the value that you want to save
+					expirationDate: expiration
+				}, function(error) {
+					console.log(error);
+				});
+
+				console.log('done, set cookie!')
+			}
+		});
+	</script>
+</head>
+<body>
+	<!-- Page wrapper with .with-sidebar class -->
+	<div class="page-wrapper text-center">
+		<!-- This parent container is required -->
+			<div class="sticky-alerts"></div>
+		<h1>Log-in to your MeaxisNetwork Account</h1>
+		<form class="w-400 mw-full" style="margin-left: auto; margin-right: auto;"> <!-- w-400 = width: 40rem (400px), mw-full = max-width: 100% -->
+			<!-- Input -->
+			<div class="form-group">
+				<label for="full-name" class="required">Username or Email</label>
+				<input type="text" class="form-control" id="login" placeholder="Admin / admin@meaxisnetwork.net" required="required">
+			</div>
+			<div class="form-group">
+				<label for="full-name" class="required">Password</label>
+				<input type="password" class="form-control" id="password" placeholder="seagull876" required="required">
+			</div>
+
+			<!-- Checkbox -->
+			<div class="form-group">
+			<div class="custom-checkbox">
+				<input type="checkbox" id="agree-to-terms">
+				<label for="agree-to-terms">I agree to the <a href="https://MeaxisNetwork.net/policies/tos">Terms of Use</a>, <a href="https://MeaxisNetwork.net/policies/privacy">Privacy Policy</a> and the <a href="https://MeaxisNetwork.net/policies/launcher">MeaxisNetwork Launcher Use & Privacy Policy</a></label>
+			</div>
+			</div>
+
+			<!-- Submit button -->
+			<input class="btn btn-primary" onclick="checkLogin(); return false;" type="submit" value="Submit" id="confirm-connect">
+		</form>
+	</div>
+
+	<script type="text/javascript">
+		function checkLogin() {
+
+			if (document.getElementById('login').value == "" || document.getElementById('login').value == undefined)
+			{
+				halfmoon.initStickyAlert({
+					content: "You need to input a login.",
+					title: "Oof.",
+					alertType: "alert-secondary",
+					fillType: "filled-lm",
+							timeShown: 10000
+				});
+
+				return false;
+			}
+
+			$.ajax({
+				type: "POST",
+				url: "https://api.meaxisnetwork.net/v2/accounts/control/login/",
+				data: {
+					appid: 'MEAXISNETWORK-APPID',
+					login: document.getElementById('login').value,
+					password: document.getElementById('password').value
+				},
+			}).then(function(result) {
+				var result = JSON.parse(result);
+
+				if (result['code'] == 202)
+				{
+					console.log('Oauth2!')
+					document.getElementById('modal-text').innerHTML = result['message']+'<br><br><div class="form-group"> <label for="username" class="required">2FA Code</label><input type="text" id="2facode" class="form-control" placeholder="Sixteen Characters." required="required"></div>';
+					halfmoon.toggleModal('modal');
+				}
+
+				else if (result['code'] == 200)
+				{
+					console.log('Success!')
+					halfmoon.initStickyAlert({
+						content: "You've been logged in, congratulations!! Please wait...",
+						title: "It's a success!",
+						alertType: "alert-success",
+						fillType: "filled-lm",
+						hasDismissButton: false,
+								timeShown: 10000
+					});
+
+					var parsedResult = result['message'].split(';');
+					setCookie(parsedResult[0], 'logcook', false)
+
+					if (parsedResult[1] != null && parsedResult[1] != "none")
+					{
+						setCookie(parsedResult[1], 'sesscook', false)
+					}
+
+					else
+					{
+						setCookie("NoSesscook", "sesscook", false)
+					}
+
+					window.location.href = 'index.html';
+
+				}
+
+				else
+				{
+					console.log('Oof, there was an error of code: '+result['code'])
+					halfmoon.initStickyAlert({
+						content: result['message'],
+						title: "Error "+result['code']+"!",
+						alertType: "alert-danger",
+						fillType: "filled-lm",
+								timeShown: 10000
+					});
+				}
+			});
+		}
+	</script>
+
+	<!-- JavaScript based modal -->
+	<div class="modal" id="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<button class="close" data-dismiss="modal" type="button" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h5 class="modal-title">2FA Code</h5>
+				<p id="modal-text">
+					
+				</p>
+				<div class="text-right mt-20"> <!-- text-right = text-align: right, mt-20 = margin-top: 2rem (20px) -->
+					<button class="btn mr-5" data-dismiss="modal" type="button">Cancel</button>
+					<button class="btn btn-success" data-dismiss="modal" type="button" onclick="verify2FA();">Verify</button>
+					<script type="text/javascript">
+						function verify2FA()
+						{
+							$.ajax({
+								type: "POST",
+								url: "https://api.meaxisnetwork.net/v2/accounts/control/login/",
+								data: {
+									appid: 'MEAXISNETWORK-APPID',
+									login: document.getElementById('login').value,
+									password: document.getElementById('password').value,
+									twofactortoken: document.getElementById('2facode').value
+								},
+							}).then(function(result) {
+								var result = JSON.parse(result);
+
+								if (result['code'] == 200)
+								{
+									halfmoon.initStickyAlert({
+										content: "You've been logged in, congratulations!! Please wait...",
+										title: "It's a success!",
+										alertType: "alert-success",
+										fillType: "filled-lm"
+									});
+
+									var parsedResult = result['message'].split(';');
+									setCookie(parsedResult[0], 'logcook', false);
+									setCookie(parsedResult[1], 'sesscook', false);
+
+									window.location.href = 'index.html';
+								}
+
+								else
+								{
+									halfmoon.initStickyAlert({
+										content: result['message'],
+										title: "Error "+result['code']+"!",
+										alertType: "alert-danger",
+										fillType: "filled-lm",
+												timeShown: 10000
+									});
+								}
+							});
+						}
+					</script>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="../deps/lib/halfmoon/halfmoon.js"></script>
+</body>
+</html>

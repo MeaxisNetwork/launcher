@@ -1,0 +1,64 @@
+<div class="sidebar-menu">
+	<a href="#" class="sidebar-link active">Home</a>
+	<br />
+	<h5 class="sidebar-title">Downloadables</h5>
+	<div class="sidebar-divider"></div>
+	<a href="inventory.html" class="sidebar-link">My Items</a>
+	<a href="#shop-redirect" class="sidebar-link">Get Items</a>
+	<a href="#redeem-code-modal" class="sidebar-link">Redeem Giftcard</a>
+	<br />
+	<h5 class="sidebar-title">More</h5>
+	<div class="sidebar-divider"></div>
+	<a href="#" class="sidebar-link">Chat <span class="badge badge-primary ml-5">Soon™</span></a>
+	<a href="#" class="sidebar-link">Gamepartys <span class="badge badge-primary ml-5">Soon™</span></a>
+	<br />
+	<h5 class="sidebar-title">Launcher</h5>
+	<div class="sidebar-divider"></div>
+	<a href="#" class="sidebar-link">Settings <span class="badge badge-primary ml-5">Soon™</span></a>
+	<br />
+	<a href="login.html" onclick="setCookie('logcook', 'null', true); setCookie('sesscook', 'null', true); window.location.href = 'login.html';" class="btn btn-block" style="width: 50%; margin-left: auto; margin-right: auto;" role="button">
+		<i class="fa fa-angle-right ml-5" aria-hidden="true"></i> <!-- ml-5= margin-left: 0.5rem (5px) -->Log-out
+	</a>
+</div>
+
+<!-- First comes the modal -->
+<div class="modal" id="redeem-code-modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<a href="#" class="btn close" role="button" aria-label="Close">
+				<span aria-hidden="true">Aight, imma head out</span>
+			</a>
+			<h5 class="modal-title">Redeem Giftcard</h5>
+			<form>
+				<div class="form-group">
+					<label for="username" class="required">Key</label>
+					<input type="text" id="giftcardField" class="form-control" placeholder="T1NGJ-02TF9-B3WO5" required="required">
+				</div>
+				<button class="btn btn-secondary btn-block" onclick="redeemGiftcard( document.getElementById('giftcardField').value ); return false;">Redeem</button>
+			</form>
+			<div class="text-right mt-10"> <!-- text-right = text-align: right, margin-top: 1rem (10px) -->
+				<a href="#modal-2">Key Invalid!?</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- First comes the modal -->
+<div class="modal" id="shop-redirect" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<a href="#" class="close" role="button" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</a>
+			<h5 class="modal-title">Wait wait wait!</h5>
+			<p>
+				This will take you straight to the MeaxisNetwork Shop, on your default browser!! Continue?
+			</p>
+			<button class="btn btn-success mr-5" onclick="shell.openExternal('https://meaxisnetwork.net/shop'); document.window.href = '#'">Yes</button>
+			<button class="btn btn-danger" onclick="window.location.href = '#';">No</button>
+			<div class="mt-5 font-size-12 text-muted"> <!-- text-right = text-align: right, margin-top: 1rem (10px) -->
+				Tip! You can make it open the shop in a pseudo-browser inside the launcher in your <a href="settings.html">launcher settings!</a>
+			</div>
+		</div>
+	</div>
+</div>
